@@ -149,6 +149,7 @@ public abstract class BaseRemoting {
                     if (future != null) {
                         future.putResponse(commandFactory.createTimeoutResponse(conn
                                 .getRemoteAddress()));
+                        //相对于future而言，执行异常回调
                         future.tryAsyncExecuteInvokeCallbackAbnormally();
                     }
                 }
@@ -178,6 +179,7 @@ public abstract class BaseRemoting {
             if (f != null) {
                 f.cancelTimeout();
                 f.putResponse(commandFactory.createSendFailedResponse(conn.getRemoteAddress(), e));
+                //相对于future而言，执行异常回调
                 f.tryAsyncExecuteInvokeCallbackAbnormally();
             }
             LOGGER.error("Exception caught when sending invocation. The address is {}",
@@ -212,6 +214,7 @@ public abstract class BaseRemoting {
 
         final int requestId = request.getId();
         try {
+            //netty时间轮：如果超时则执行；
             Timeout timeout = TimerHolder.getTimer().newTimeout(new TimerTask() {
                 @Override
                 public void run(Timeout timeout) throws Exception {
@@ -223,6 +226,7 @@ public abstract class BaseRemoting {
                 }
 
             }, remainingTime, TimeUnit.MILLISECONDS);
+            //后续用于取消操作
             future.addTimeout(timeout);
 
             conn.getChannel().writeAndFlush(request).addListener(new ChannelFutureListener() {

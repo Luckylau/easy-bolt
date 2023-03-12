@@ -128,6 +128,7 @@ public class RemotingContext {
      * @return
      */
     public boolean isRequestTimeout() {
+        //请求被处理时的时间和请求到达服务端的时间来判定请求是否已经超时
         if (this.timeout > 0 && (this.rpcCommandType != RpcCommandType.REQUEST_ONEWAY)
                 && (System.currentTimeMillis() - this.arriveTimestamp) > this.timeout) {
             return true;

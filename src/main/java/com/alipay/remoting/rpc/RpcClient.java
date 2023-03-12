@@ -53,6 +53,7 @@ public class RpcClient extends AbstractBoltClient {
     private ConnectionMonitorStrategy monitorStrategy;
 
     public RpcClient() {
+        //构建一个taskScanner
         this.taskScanner = new RpcTaskScanner();
         this.userProcessors = new ConcurrentHashMap<String, UserProcessor<?>>();
         this.connectionEventHandler = new RpcConnectionEventHandler(this);
@@ -115,14 +116,17 @@ public class RpcClient extends AbstractBoltClient {
         }
         if (this.connectionManager == null) {
             DefaultClientConnectionManager defaultConnectionManager = new DefaultClientConnectionManager(
+                    //new RpcHandler(userProcessors)
                     connectionSelectStrategy, new RpcConnectionFactory(userProcessors, this),
                     connectionEventHandler, connectionEventListener);
             defaultConnectionManager.setAddressParser(this.addressParser);
+            //netty初始化
             defaultConnectionManager.startup();
             this.connectionManager = defaultConnectionManager;
         }
         this.rpcRemoting = new RpcClientRemoting(new RpcCommandFactory(), this.addressParser,
                 this.connectionManager);
+        //ConnectionManager
         this.taskScanner.add(this.connectionManager);
         this.taskScanner.startup();
 

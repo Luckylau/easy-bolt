@@ -66,7 +66,7 @@ public class RpcTaskScanner extends AbstractLifeCycle {
                 }
             }
 
-        }, 10000, 10000, TimeUnit.MILLISECONDS);
+        }, 10, 10, TimeUnit.SECONDS);
     }
 
     @Override

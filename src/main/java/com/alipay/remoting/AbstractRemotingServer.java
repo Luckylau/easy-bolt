@@ -80,6 +80,7 @@ public abstract class AbstractRemotingServer extends AbstractLifeCycle implement
 
     @Override
     public void startup() throws LifeCycleException {
+        //isStarted标识位由false变为true
         super.startup();
 
         try {

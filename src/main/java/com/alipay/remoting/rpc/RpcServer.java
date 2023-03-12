@@ -264,14 +264,16 @@ public class RpcServer extends AbstractRemotingServer {
             this.connectionEventHandler.setConnectionManager(this.connectionManager);
             this.connectionEventHandler.setConnectionEventListener(this.connectionEventListener);
         } else {
+            //
             this.connectionEventHandler = new ConnectionEventHandler(this);
             this.connectionEventHandler.setConnectionEventListener(this.connectionEventListener);
         }
+        //通信模型，oneway、sync、callback、future
         initRpcRemoting();
 
         Integer tcpSoSndBuf = option(BoltGenericOption.TCP_SO_SNDBUF);
         Integer tcpSoRcvBuf = option(BoltGenericOption.TCP_SO_RCVBUF);
-
+        //netty的相关配置
         this.bootstrap = new ServerBootstrap();
         this.bootstrap
                 .group(bossGroup, workerGroup)

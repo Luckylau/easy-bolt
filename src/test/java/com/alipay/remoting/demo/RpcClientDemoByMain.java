@@ -52,7 +52,7 @@ public class RpcClientDemoByMain {
         client.addConnectionEventProcessor(ConnectionEventType.CONNECT, clientConnectProcessor);
         client.addConnectionEventProcessor(ConnectionEventType.CLOSE, clientDisConnectProcessor);
         // 3. do init
-        client.init();
+        client.startup();
     }
 
     public static void main(String[] args) {

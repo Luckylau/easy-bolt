@@ -40,6 +40,7 @@ public class DefaultClientConnectionManager extends DefaultConnectionManager imp
 
         this.connectionEventHandler.setConnectionManager(this);
         this.connectionEventHandler.setConnectionEventListener(connectionEventListener);
+        //netty初始化
         this.connectionFactory.init(connectionEventHandler);
     }
 
