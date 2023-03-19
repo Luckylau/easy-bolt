@@ -231,6 +231,7 @@ public class ConnectionEventHandler extends ChannelDuplexHandler {
     public void setConnectionEventListener(ConnectionEventListener listener) {
         if (listener != null) {
             this.eventListener = listener;
+            //事件通知的异步线程池
             if (this.eventExecutor == null) {
                 this.eventExecutor = new ConnectionEventExecutor();
             }

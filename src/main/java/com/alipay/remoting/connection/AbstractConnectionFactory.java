@@ -139,15 +139,18 @@ public abstract class AbstractConnectionFactory implements ConnectionFactory {
                 pipeline.addLast("decoder", codec.newDecoder());
                 pipeline.addLast("encoder", codec.newEncoder());
 
+                //开启心跳机制后，会有对应的心跳处理
                 boolean idleSwitch = ConfigManager.tcp_idle_switch();
                 if (idleSwitch) {
                     pipeline.addLast("idleStateHandler",
                             new IdleStateHandler(ConfigManager.tcp_idle(), ConfigManager.tcp_idle(), 0,
                                     TimeUnit.MILLISECONDS));
+                    //heartbeatHandler == HeartbeatHandler
                     pipeline.addLast("heartbeatHandler", heartbeatHandler);
                 }
-
+                //connectionEventHandler == RpcConnectionEventHandler
                 pipeline.addLast("connectionEventHandler", connectionEventHandler);
+                //handler == RpcHandler
                 pipeline.addLast("handler", handler);
                 if (extendedHandlers != null) {
                     List<ChannelHandler> backHandlers = extendedHandlers.backChannelHandlers();

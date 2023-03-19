@@ -24,6 +24,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Default RPC connection factory impl.
+ * 功能：
+ * 1. 定义了编解码的方式；
+ * 2. 心跳机制；
+ * 3. 处理收到的消息；
+ * 4. 传递一些配置；
  *
  * @author chengyi (mark.lx@antfin.com) 2018-06-20 15:32
  */
@@ -31,6 +36,9 @@ public class RpcConnectionFactory extends DefaultConnectionFactory {
 
     public RpcConnectionFactory(ConcurrentHashMap<String, UserProcessor<?>> userProcessors,
                                 Configuration configurations) {
+        //userProcessors -> RpcHandler(ChannelInboundHandlerAdapter)
+        //RpcCodec 编解码
+        //HeartbeatHandler 处理器
         super(new RpcCodec(), new HeartbeatHandler(), new RpcHandler(userProcessors),
                 configurations);
     }

@@ -362,6 +362,7 @@ public class DefaultConnectionManager extends AbstractLifeCycle implements Conne
 
     /**
      * in case of cache pollution and connection leak, to do schedule scan
+     * taskScanner调用的方法；
      */
     @Override
     public void scan() {
@@ -620,6 +621,7 @@ public class DefaultConnectionManager extends AbstractLifeCycle implements Conne
                 task = this.healTasks.putIfAbsent(poolKey, newTask);
                 if (null == task) {
                     task = newTask;
+                    //doCreate(this.url, this.pool, this.getClass().getSimpleName(), 0);
                     task.run();
                 }
             }

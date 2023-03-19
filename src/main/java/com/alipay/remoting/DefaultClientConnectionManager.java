@@ -37,10 +37,11 @@ public class DefaultClientConnectionManager extends DefaultConnectionManager imp
     @Override
     public void startup() throws LifeCycleException {
         super.startup();
-
+        //暂时不理解setConnectionManager后做什么
         this.connectionEventHandler.setConnectionManager(this);
+        //收到connect的event回调connectionEventListener
         this.connectionEventHandler.setConnectionEventListener(connectionEventListener);
-        //netty初始化
+        //调用RpcConnectionFactory来对netty进行初始化
         this.connectionFactory.init(connectionEventHandler);
     }
 

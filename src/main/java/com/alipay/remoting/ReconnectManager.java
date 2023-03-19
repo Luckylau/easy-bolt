@@ -20,8 +20,7 @@ import com.alipay.remoting.log.BoltLoggerFactory;
 import org.slf4j.Logger;
 
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 /**
  * Reconnect manager.
@@ -40,7 +39,7 @@ public class ReconnectManager extends AbstractLifeCycle implements Reconnector {
     private final LinkedBlockingQueue<ReconnectTask> tasks;
     private final List<Url> canceled;
 
-    private Thread healConnectionThreads;
+    private ThreadPoolExecutor healConnectionThreads;
 
     public ReconnectManager(ConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
@@ -74,10 +73,9 @@ public class ReconnectManager extends AbstractLifeCycle implements Reconnector {
         synchronized (this) {
             if (!isStarted()) {
                 super.startup();
-
-                this.healConnectionThreads = new Thread(new HealConnectionRunner());
-                this.healConnectionThreads.setName("Bolt-heal-connection-thread");
-                this.healConnectionThreads.start();
+                healConnectionThreads = new ThreadPoolExecutor(1, 1, 60, TimeUnit.
+                        SECONDS, new SynchronousQueue<>(), new NamedThreadFactory("Bolt-heal-connection"));
+                healConnectionThreads.execute(new HealConnectionRunner(this.tasks));
             }
         }
     }
@@ -86,7 +84,7 @@ public class ReconnectManager extends AbstractLifeCycle implements Reconnector {
     public void shutdown() throws LifeCycleException {
         super.shutdown();
 
-        healConnectionThreads.interrupt();
+        healConnectionThreads.shutdown();
         this.tasks.clear();
         this.canceled.clear();
     }
@@ -128,6 +126,11 @@ public class ReconnectManager extends AbstractLifeCycle implements Reconnector {
 
     private final class HealConnectionRunner implements Runnable {
         private long lastConnectTime = -1;
+        private LinkedBlockingQueue<ReconnectTask> tasks;
+
+        public HealConnectionRunner(LinkedBlockingQueue<ReconnectTask> tasks) {
+            this.tasks = tasks;
+        }
 
         @Override
         public void run() {
@@ -136,11 +139,11 @@ public class ReconnectManager extends AbstractLifeCycle implements Reconnector {
                 ReconnectTask task = null;
                 try {
                     if (this.lastConnectTime < HEAL_CONNECTION_INTERVAL) {
-                        Thread.sleep(HEAL_CONNECTION_INTERVAL);
+                        TimeUnit.MICROSECONDS.sleep(HEAL_CONNECTION_INTERVAL);
                     }
 
                     try {
-                        task = ReconnectManager.this.tasks.take();
+                        task = tasks.take();
                     } catch (InterruptedException e) {
                         // ignore
                     }

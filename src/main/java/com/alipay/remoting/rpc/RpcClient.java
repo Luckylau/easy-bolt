@@ -55,8 +55,12 @@ public class RpcClient extends AbstractBoltClient {
     public RpcClient() {
         //构建一个taskScanner
         this.taskScanner = new RpcTaskScanner();
+        //用于存放自定义processor
         this.userProcessors = new ConcurrentHashMap<String, UserProcessor<?>>();
+        //RpcConnectionEventHandler->ConnectionEventHandler->ChannelDuplexHandler
+        //connection的事件监听
         this.connectionEventHandler = new RpcConnectionEventHandler(this);
+        //通过ConnectionEventListener的onEvent回调，得到对ConnectionEventType自定义监听的结果
         this.connectionEventListener = new ConnectionEventListener();
     }
 
@@ -99,7 +103,7 @@ public class RpcClient extends AbstractBoltClient {
     @Override
     public void startup() throws LifeCycleException {
         super.startup();
-
+        //自定义processor启动
         for (UserProcessor<?> userProcessor : userProcessors.values()) {
             if (!userProcessor.isStarted()) {
                 userProcessor.startup();
@@ -115,6 +119,7 @@ public class RpcClient extends AbstractBoltClient {
             connectionSelectStrategy = new RandomSelectStrategy(this);
         }
         if (this.connectionManager == null) {
+            //ConnectionSelectStrategy + RpcConnectionFactory + connectionEventHandler + connectionEventListener
             DefaultClientConnectionManager defaultConnectionManager = new DefaultClientConnectionManager(
                     //new RpcHandler(userProcessors)
                     connectionSelectStrategy, new RpcConnectionFactory(userProcessors, this),
@@ -124,14 +129,16 @@ public class RpcClient extends AbstractBoltClient {
             defaultConnectionManager.startup();
             this.connectionManager = defaultConnectionManager;
         }
+        //oneway、sync、callback、future
         this.rpcRemoting = new RpcClientRemoting(new RpcCommandFactory(), this.addressParser,
                 this.connectionManager);
-        //ConnectionManager
+        //connectionManager== DefaultClientConnectionManager
         this.taskScanner.add(this.connectionManager);
         this.taskScanner.startup();
-
+        //开启连接监控,如果连接数超过配置的阈值，就把空闲的连接关闭
         if (isConnectionMonitorSwitchOn()) {
             if (monitorStrategy == null) {
+                //monitorStrategy monitor Map<String, RunStateRecordedFutureTask<ConnectionPool>> connPools
                 connectionMonitor = new DefaultConnectionMonitor(new ScheduledDisconnectStrategy(),
                         this.connectionManager);
             } else {
@@ -141,6 +148,7 @@ public class RpcClient extends AbstractBoltClient {
             connectionMonitor.startup();
             logger.warn("Switch on connection monitor");
         }
+        //客户端重连
         if (isReconnectSwitchOn()) {
             reconnectManager = new ReconnectManager(this.connectionManager);
             reconnectManager.startup();
