@@ -26,8 +26,6 @@ import com.alipay.remoting.util.RemotingUtil;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.util.Timeout;
-import io.netty.util.TimerTask;
 import org.slf4j.Logger;
 
 import java.util.concurrent.TimeUnit;
@@ -53,6 +51,10 @@ public class RpcHeartbeatTrigger implements HeartbeatTrigger {
     }
 
     /**
+     * 客户端心跳发送逻辑
+     * 在Connection对象上会维护心跳失败的次数，当心跳失败的次数超过系统的最大次时，主动关闭Connection。
+     * 如果心跳成功则清除心跳失败的计数。同样的，在心跳的超时处理中同样使用Netty的Timer实现来管理超时任务（和请求的超时管理使用的是同一个Timer实例）。
+     *
      * @see com.alipay.remoting.HeartbeatTrigger#heartbeatTriggered(io.netty.channel.ChannelHandlerContext)
      */
     @Override
@@ -137,15 +139,12 @@ public class RpcHeartbeatTrigger implements HeartbeatTrigger {
                     }
                 }
             });
-            TimerHolder.getTimer().newTimeout(new TimerTask() {
-                @Override
-                public void run(Timeout timeout) throws Exception {
-                    InvokeFuture future = conn.removeInvokeFuture(heartbeatId);
-                    if (future != null) {
-                        future.putResponse(commandFactory.createTimeoutResponse(conn
-                                .getRemoteAddress()));
-                        future.tryAsyncExecuteInvokeCallbackAbnormally();
-                    }
+            TimerHolder.getTimer().newTimeout(timeout -> {
+                InvokeFuture timeoutInvokeFuture = conn.removeInvokeFuture(heartbeatId);
+                if (timeoutInvokeFuture != null) {
+                    timeoutInvokeFuture.putResponse(commandFactory.createTimeoutResponse(conn
+                            .getRemoteAddress()));
+                    timeoutInvokeFuture.tryAsyncExecuteInvokeCallbackAbnormally();
                 }
             }, heartbeatTimeoutMillis, TimeUnit.MILLISECONDS);
         }

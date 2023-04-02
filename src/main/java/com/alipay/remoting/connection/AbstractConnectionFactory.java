@@ -142,6 +142,7 @@ public abstract class AbstractConnectionFactory implements ConnectionFactory {
                 //开启心跳机制后，会有对应的心跳处理
                 boolean idleSwitch = ConfigManager.tcp_idle_switch();
                 if (idleSwitch) {
+                    //心跳机制
                     pipeline.addLast("idleStateHandler",
                             new IdleStateHandler(ConfigManager.tcp_idle(), ConfigManager.tcp_idle(), 0,
                                     TimeUnit.MILLISECONDS));
@@ -150,7 +151,7 @@ public abstract class AbstractConnectionFactory implements ConnectionFactory {
                 }
                 //connectionEventHandler == RpcConnectionEventHandler
                 pipeline.addLast("connectionEventHandler", connectionEventHandler);
-                //handler == RpcHandler
+                //handler == RpcHandler,是带内的handler，也就是收消息处理
                 pipeline.addLast("handler", handler);
                 if (extendedHandlers != null) {
                     List<ChannelHandler> backHandlers = extendedHandlers.backChannelHandlers();

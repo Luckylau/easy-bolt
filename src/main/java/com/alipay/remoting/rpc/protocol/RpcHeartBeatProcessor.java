@@ -34,8 +34,13 @@ import org.slf4j.Logger;
 public class RpcHeartBeatProcessor extends AbstractRemotingProcessor {
     private static final Logger logger = BoltLoggerFactory.getLogger("RpcRemoting");
 
+    /**
+     * @param ctx RemotingContext
+     * @param msg T
+     */
     @Override
     public void doProcess(final RemotingContext ctx, RemotingCommand msg) {
+        //HeartbeatCommand是客户端发送的，也就是服务端收到的
         if (msg instanceof HeartbeatCommand) {// process the heartbeat
             final int id = msg.getId();
             if (logger.isDebugEnabled()) {

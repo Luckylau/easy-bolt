@@ -306,6 +306,7 @@ public class RpcServer extends AbstractRemotingServer {
         final boolean flushConsolidationSwitch = option(BoltServerOption.NETTY_FLUSH_CONSOLIDATION);
         final int idleTime = ConfigManager.tcp_server_idle();
         final ChannelHandler serverIdleHandler = new ServerIdleHandler();
+        //processors
         final RpcHandler rpcHandler = new RpcHandler(true, this.userProcessors);
         this.bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
 
@@ -342,6 +343,7 @@ public class RpcServer extends AbstractRemotingServer {
                 }
                 pipeline.addLast("decoder", codec.newDecoder());
                 pipeline.addLast("encoder", codec.newEncoder());
+
                 if (idleSwitch) {
                     pipeline.addLast("idleStateHandler", new IdleStateHandler(0, 0, idleTime,
                             TimeUnit.MILLISECONDS));
