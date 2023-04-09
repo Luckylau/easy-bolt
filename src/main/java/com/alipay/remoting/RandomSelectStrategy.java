@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -60,6 +61,11 @@ public class RandomSelectStrategy implements ConnectionSelectStrategy {
             if (configuration != null && configuration.option(BoltClientOption.CONN_MONITOR_SWITCH)) {
                 List<Connection> serviceStatusOnConnections = new ArrayList<Connection>();
                 for (Connection conn : connections) {
+                    /**
+                     * CONN_SERVICE_STATUS是由ScheduledDisconnectStrategy的monitor来标记的
+                     * CONN_SERVICE_STATUS_OFF一定为off，其他为on
+                     * @see com.alipay.remoting.ScheduledDisconnectStrategy#monitor(Map)
+                     */
                     String serviceStatus = (String) conn.getAttribute(Configs.CONN_SERVICE_STATUS);
                     if (!StringUtils.equals(serviceStatus, Configs.CONN_SERVICE_STATUS_OFF)) {
                         serviceStatusOnConnections.add(conn);

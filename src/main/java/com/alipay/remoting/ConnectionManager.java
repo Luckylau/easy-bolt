@@ -44,6 +44,7 @@ public interface ConnectionManager extends Scannable, ConnectionHeartbeatManager
     void add(Connection connection);
 
     /**
+     * poolKey指不同的服务
      * Add a connection to {@link ConnectionPool} with the specified poolKey.
      *
      * @param connection an available connection, you should {@link #check(Connection)} this connection before add

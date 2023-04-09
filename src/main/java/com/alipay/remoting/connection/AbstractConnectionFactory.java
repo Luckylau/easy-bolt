@@ -136,7 +136,9 @@ public abstract class AbstractConnectionFactory implements ConnectionFactory {
                     pipeline.addLast("flushConsolidationHandler", new FlushConsolidationHandler(
                             1024, true));
                 }
+                //带内
                 pipeline.addLast("decoder", codec.newDecoder());
+                //带外
                 pipeline.addLast("encoder", codec.newEncoder());
 
                 //开启心跳机制后，会有对应的心跳处理
@@ -146,12 +148,12 @@ public abstract class AbstractConnectionFactory implements ConnectionFactory {
                     pipeline.addLast("idleStateHandler",
                             new IdleStateHandler(ConfigManager.tcp_idle(), ConfigManager.tcp_idle(), 0,
                                     TimeUnit.MILLISECONDS));
-                    //heartbeatHandler == HeartbeatHandler
+                    //heartbeatHandler == HeartbeatHandler， 带内+带外
                     pipeline.addLast("heartbeatHandler", heartbeatHandler);
                 }
-                //connectionEventHandler == RpcConnectionEventHandler
+                //connectionEventHandler == RpcConnectionEventHandler  带内+带外
                 pipeline.addLast("connectionEventHandler", connectionEventHandler);
-                //handler == RpcHandler,是带内的handler，也就是收消息处理
+                //handler == RpcHandler,是带内的handler，也就是收消息处理  带内 + 带外
                 pipeline.addLast("handler", handler);
                 if (extendedHandlers != null) {
                     List<ChannelHandler> backHandlers = extendedHandlers.backChannelHandlers();
@@ -171,6 +173,10 @@ public abstract class AbstractConnectionFactory implements ConnectionFactory {
         Connection conn = new Connection(channel, ProtocolCode.fromBytes(url.getProtocol()),
                 url.getVersion(), url);
         if (channel.isActive()) {
+            /**
+             * connectionEventHandler收到事件处理
+             * @see com.alipay.remoting.ConnectionEventHandler#userEventTriggered(ChannelHandlerContext, Object)
+             */
             channel.pipeline().fireUserEventTriggered(ConnectionEventType.CONNECT);
         } else {
             channel.pipeline().fireUserEventTriggered(ConnectionEventType.CONNECT_FAILED);

@@ -138,11 +138,14 @@ public class ReconnectManager extends AbstractLifeCycle implements Reconnector {
                 long start = -1;
                 ReconnectTask task = null;
                 try {
+                    //判断时间间隔，因为要控制重连任务的执行速度，所以需要对上一次重连的时间间隔和设定的阈值做比较，
+                    // 这个阈值是1s，如果上一次重连任务的执行速度没有超过1s，就会Sleep线程1s。
                     if (this.lastConnectTime < HEAL_CONNECTION_INTERVAL) {
                         TimeUnit.MICROSECONDS.sleep(HEAL_CONNECTION_INTERVAL);
                     }
 
                     try {
+                        //从重连任务的阻塞队列中尝试获取任务，如果没有获取到，线程会阻塞。
                         task = tasks.take();
                     } catch (InterruptedException e) {
                         // ignore
@@ -153,7 +156,11 @@ public class ReconnectManager extends AbstractLifeCycle implements Reconnector {
                     }
 
                     start = System.currentTimeMillis();
+                    //检查任务是否有效，是否已经取消，如果没有取消，就会执行重连任务。
                     if (!canceled.contains(task.url)) {
+                        /**
+                         * @see DefaultConnectionManager#createConnectionAndHealIfNeed
+                         */
                         task.run();
                     } else {
                         logger.warn("Invalid reconnect request task {}, cancel list size {}",
@@ -164,7 +171,7 @@ public class ReconnectManager extends AbstractLifeCycle implements Reconnector {
                     if (start != -1) {
                         this.lastConnectTime = System.currentTimeMillis() - start;
                     }
-
+                    //如果捕捉到异常，不会取消这个重连任务，而是重新将它添加到任务队列里
                     if (task != null) {
                         logger.warn("reconnect target: {} failed.", task.url, e);
                         tasks.add(task);

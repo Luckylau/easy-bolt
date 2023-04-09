@@ -376,7 +376,9 @@ public class DefaultConnectionManager extends AbstractLifeCycle implements Conne
                             poolKey);
                     continue;
                 }
-
+                /**
+                 * @see ConnectionPoolCall#call() 判断这个方法是否完成
+                 */
                 if (!task.isDone()) {
                     logger.info("task(poolKey={}) is not done, do not scan the connection pool",
                             poolKey);
@@ -385,8 +387,10 @@ public class DefaultConnectionManager extends AbstractLifeCycle implements Conne
 
                 ConnectionPool pool = this.getConnectionPool(task);
                 if (null != pool) {
+                    //pool scan
                     pool.scan();
                     if (pool.isEmpty()) {
+                        //如果连接池为空且该连接池最后访问的时间间隔超过了阈值，就会释放所有连接回收连接池内存。
                         if ((System.currentTimeMillis() - pool.getLastAccessTimestamp()) > Constants.DEFAULT_EXPIRE_TIME) {
                             iter.remove();
                             logger.warn("Remove expired pool task of poolKey {} which is empty.",
@@ -531,7 +535,7 @@ public class DefaultConnectionManager extends AbstractLifeCycle implements Conne
             InterruptedException {
         RunStateRecordedFutureTask<ConnectionPool> initialTask;
         ConnectionPool pool = null;
-
+        //默认创建连接尝试2次
         int retry = Constants.DEFAULT_RETRY_TIMES;
 
         int timesOfResultNull = 0;

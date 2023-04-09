@@ -192,6 +192,7 @@ public class ConnectionPool implements Scannable {
     public void scan() {
         if (null != connections && !connections.isEmpty()) {
             for (Connection conn : connections) {
+                //如果连接断连，就关闭当前conn，并移除
                 if (!conn.isFine()) {
                     logger.warn(
                             "Remove bad connection when scanning conns of ConnectionPool - {}:{}",

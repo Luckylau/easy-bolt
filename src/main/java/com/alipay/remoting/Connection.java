@@ -98,6 +98,7 @@ public class Connection {
      */
     public Connection(Channel channel) {
         this.channel = channel;
+        //这个很重要，后面回检测是否摄入
         this.channel.attr(CONNECTION).set(this);
     }
 

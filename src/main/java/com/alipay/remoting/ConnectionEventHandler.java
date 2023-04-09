@@ -176,6 +176,7 @@ public class ConnectionEventHandler extends ChannelDuplexHandler {
 
             switch (eventType) {
                 case CONNECT:
+                    //通知ConnectionEventProcessor
                     onEvent(connection, connection.getUrl().getOriginUrl(),
                             ConnectionEventType.CONNECT);
                     break;
@@ -215,6 +216,7 @@ public class ConnectionEventHandler extends ChannelDuplexHandler {
     private void onEvent(final Connection conn, final String remoteAddress,
                          final ConnectionEventType type) {
         if (this.eventListener != null) {
+            //异步
             this.eventExecutor.onEvent(new Runnable() {
                 @Override
                 public void run() {
